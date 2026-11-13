@@ -36,3 +36,24 @@ A minimal accessory AppKit status app with no battery code reproduced three NSXP
 Separate read-only checks with Apple's `leaks --noContent --atExit` reported zero leaks for one public Battery.read call, 1,000 public Battery.read calls, and a SmartCharge state read. A renderer stress process rendered and decoded 10,000 icons across 0–100 and both charging states. It reported one 32-byte ImageIO initialization allocation (`IIOGetCodesigningIdentifier`); the one-render control reported the same 32 bytes. Its final footprint was 8,449 KB, peak 8,545 KB. The image decoder is part of that test harness, not the app's icon-refresh path.
 
 Conclusion: no growing idle or per-render leak observed in these checks. The native renderer remains tiny; no workaround added for fixed framework allocations. This is not a multi-day soak, a full charging-cycle test, or a battery-runtime measurement.
+
+## Twenty-minute run of 1.1.10
+
+November 13, 2026, 14:37:59–14:58:13 Central; **1,214 seconds**, 121 samples at nominal ten-second intervals. Installed `/Applications/Watt’s Inside.app`, version 1.1.10, same PID 83738 throughout. The menu had been exercised before this test and remained untouched during the measurement. AC power, 99% finishing charge at the start and end. Ordinary desktop activity was not controlled. Raw app-only samples: [idle-1.1.10.csv](idle-1.1.10.csv).
+
+| Metric | 1.1.10, 20 minutes | Earlier 1.1.4, 10 minutes |
+| --- | --- | --- |
+| CPU time used | 0.87 seconds | 0.14 seconds |
+| Average CPU, one core | 0.0717% | 0.023% |
+| Highest sampled CPU interval | 1.0% | 0.3% |
+| Rounded memory range | 16–18 MB | 12–13 MB |
+| Rounded memory start → end | 16 → 18 MB | 12 → 12 MB |
+| Additional idle wakeups | 53 | 11 |
+
+113 of 121 memory samples were 17 MB, seven were 18 MB, and the initial sample was 16 MB. The first three approximately five-minute blocks each predominantly measured 17 MB; the final block contained 25 samples at 17 MB and six at 18 MB. Memory did not continuously climb, but the ending value was higher than the start. This is evidence of low, mostly stable idle use over this interval, not proof of zero leakage or unchanged memory use versus earlier versions.
+
+After the timed capture, Apple's leak scanner reported a **17.5 MB physical footprint**, **17.9 MB peak**, and **192 allocations / 9,600 bytes** in two NSXPCConnection root cycles. These are the same category of framework-cycle findings reproduced in the earlier minimal AppKit control, but this run does not independently establish their cause. The leak scan was outside the timed idle interval.
+
+The latest build measured higher CPU and memory than 1.1.4, though both remain small in absolute terms. Different power state (finishing charge versus fully charged), prior menu use, and uncontrolled desktop activity mean this is not a controlled version-to-version regression benchmark. No code was changed based on this run. No watts, battery-discharge runtime, multi-day soak, or repeated menu-opening leak test was measured.
+
+A second post-run leak scan of the same process reported the identical **192 allocations / 9,600 bytes** and a slightly lower **17.4 MB** footprint (peak still 17.9 MB). This short repeat found no increase in the flagged allocations; it is not a long-duration leak proof.

@@ -29,7 +29,7 @@ The menu is built with AppKit. Apple’s significant-energy app list is not incl
 
 In a live comparison at 99% charging, Watt’s Inside occupied **59 pt** of menu-bar width versus **71 pt** for Apple’s battery plus percentage—**17% less**, including system padding. Width varies with the number and charging indicator.
 
-A ten-minute installed-app idle test averaged **0.023% CPU**, with **12–13 MB memory** and no sustained growth. These are measurements from one Mac, not a battery-life guarantee.
+A twenty-minute installed-app idle test of **1.1.10** averaged **0.072% CPU**, with **16–18 MB memory** (17 MB in 113 of 121 samples). Usage stayed low, though higher than the earlier build’s measurements under different conditions. These are measurements from one Mac, not a battery-life or zero-leak guarantee.
 
 [Width and menu verification](docs/slow-charger-and-menu.md) · [Idle measurements and limitations](docs/idle-measurement.md)
 
