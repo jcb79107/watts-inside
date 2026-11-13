@@ -1,74 +1,70 @@
 # Watt’s Inside
 
-Your battery percentage. Inside the battery.
+![Watt’s Inside — Your battery percentage. Inside the battery.](docs/images/readme-banner.png)
 
-A tiny native macOS menu-bar app. Swift, AppKit, and IOKit. No package dependencies, network requests, analytics, polling timers, Dock icon, Accessibility permission, or privileged helper.
+A small, native macOS app that puts your battery percentage inside the menu-bar icon. More room for everything else.
 
-## Everyday use
+Built with Swift, AppKit, and IOKit. No dependencies, analytics, network requests, polling timers, Dock icon, or background helper.
 
-Click the battery icon for a native menu directly beneath it:
+[Latest release](https://github.com/jcb79107/watts-inside/releases/latest) · [Build from source](#install) · [MIT license](LICENSE)
 
-- Battery percentage and power source.
-- Charging, Finishing Charge, Fully Charged, Not Charging, or Low Battery.
-- Charging On Hold or Charged to a Limit when macOS reports the relevant smart-charging state.
-- Time until full when the system supplies an estimate.
-- Battery-health notice when the system reports reduced capacity or poor health.
-- Low Power Mode status; select it to change energy mode in Battery Settings.
-- Charge to Full Now when macOS reports a hold/limit and permits the override.
-- Battery Settings…
+## Small icon. Familiar menu.
 
-Right-click (or Control-click) the icon to quit. VoiceOver receives the battery percentage and current basic power state. Unknown battery data shows `?`, never a stale or invented percentage.
+Click for your battery level, power source, charging status, and Battery Settings. The number stays inside the icon; a bolt appears while charging. Native template rendering follows your menu-bar appearance.
 
-Slow Charger is shown when macOS reports it, using the same notification state as Control Center. Unsupported or unknown states omit the label; there is no wattage guess or polling. This private system signal may change in future macOS releases.
+<img src="docs/images/battery-menu.png" width="232" alt="Watt’s Inside native menu showing Battery 99%, Power Adapter, Finishing Charge, Slow Charger, Low Power Mode, and Battery Settings.">
 
-The icon shows a bolt only while charging; connection and hold status remain in the menu. Its solid silhouette is not a fill gauge; the number is the charge level. It widens for three-digit percentages and power markers. Native template rendering adapts to menu-bar appearance.
+- **Charging status:** charging, finishing, full, low battery, or not charging.
+- **Charge holds and limits:** see when macOS pauses charging or reaches your configured limit.
+- **Slow Charger:** uses the same system signal as Apple’s menu, without guessing from wattage.
+- **Charge to Full Now:** temporarily override an eligible hold or limit, then restore your saved limit.
+- **Useful details:** time until full and battery-health notices when macOS provides them.
+- **Low Power Mode:** see its status and open Battery Settings to change it.
 
-## Charge to Full Now
+Right-click or Control-click to quit. Command-drag to reposition the icon. Unknown battery data displays `?` instead of an invented percentage.
 
-This asks macOS to temporarily override Optimized Battery Charging or its charge limit. It does not install a helper, invoke sudo, or write to the SMC. Before overriding a charge limit, it saves the exact limit durably. It restores that limit at verified 100% completion, unplugging, or normal app quit; after a crash it retains the saved limit for recovery on reopening. You can also choose Restore [your limit]% Charge Limit from the menu.
+The menu is built with AppKit. Apple’s significant-energy app list is not included.
 
-Apple does not provide a public API for this action. The app loads the private `PowerUISmartChargeClient` at runtime, checks required methods, validates the returned state, and rechecks permission and power connection before requesting the override. If the interface is absent, unknown, or fails to return valid state, the action is omitted. Rejected requests show an error; the app never claims charging started just because it sent a request. macOS controls charging. Our real-device test found that its restore call could return 80% instead of the saved 95%; the app corrects that mismatch once and verifies the exact limit before deleting its recovery record. Failed restoration retains the record and a retry action. The app must be running to restore automatically; no background helper runs after force-quit.
+## Less space. Little overhead.
 
-**Compatibility limitation:** this interface can change in a macOS update. Its live read path was verified on macOS 26.5.2; a real 95% override and exact restoration were verified on an already-full battery. A complete discharge/recharge cycle and Optimized Battery Charging-only override remain untested. This build is not intended for Mac App Store submission because it uses a private API.
+In a live comparison at 99% charging, Watt’s Inside occupied **59 pt** of menu-bar width versus **71 pt** for Apple’s battery plus percentage—**17% less**, including system padding. Width varies with the number and charging indicator.
 
-The small charging adapter is adapted from MIT-licensed [Lithe](https://github.com/asmeurer/Lithe). See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+A ten-minute installed-app idle test averaged **0.023% CPU**, with **12–13 MB memory** and no sustained growth. These are measurements from one Mac, not a battery-life guarantee.
 
-## Build and run
+[Width and menu verification](docs/slow-charger-and-menu.md) · [Idle measurements and limitations](docs/idle-measurement.md)
 
-Requires macOS 13 or newer and Xcode Command Line Tools with Swift 6 or newer. Builds for the current Mac's architecture.
+## Install
+
+Requires macOS 13 or newer and Xcode Command Line Tools with Swift 6 or newer. Source builds are the supported installation path and target your Mac’s architecture.
 
 ```sh
+git clone https://github.com/jcb79107/watts-inside.git
+cd watts-inside
 ./test.sh
 ./build.sh
 open "build/Watt’s Inside.app"
 ```
 
-Drag the app to Applications to keep it. To start it at login, add it in System Settings → General → Login Items. Hide Apple's battery icon in System Settings → Menu Bar (Control Center on older macOS). Command-drag our icon to reposition it.
+1. Move **Watt’s Inside.app** from `build/` to Applications.
+2. Hide Apple’s battery icon in **System Settings → Menu Bar** (Control Center on older macOS).
+3. For automatic startup, add Watt’s Inside in **System Settings → General → Login Items**.
 
-Outside an explicitly requested charging override and its restoration, the app does not change system preferences. Before uninstalling, choose Restore if it is shown, then quit normally and delete the app. Builds are locally ad-hoc signed, not Developer ID signed or notarized; downloaded binaries may trigger Gatekeeper. Source builds are the supported installation path. Do not disable Gatekeeper globally.
+Release downloads are ad-hoc signed, not Developer ID signed or notarized. Gatekeeper may block downloaded builds; building from source is recommended. Do not disable Gatekeeper globally.
 
-## Deliberately small
+**Using Ice?** If an old unnamed item is cached, quit and reopen Ice, then move Watt’s Inside from Hidden to Visible in Menu Bar Layout. Verified with Ice 0.11.13-dev.2.
 
-Uses system battery-change and wake notifications. Smart-charging state is queried when opening the menu or requesting a charging override. No permanent background polling, settings window, updater, or charts. Local UserDefaults stores the pending charge-limit recovery record and AppKit’s saved status-item position.
+## Charging controls and compatibility
 
-The menu is ours, not a transplanted Control Center panel. It does not claim Apple's per-app significant-energy list: CPU usage is not equivalent to energy usage. Low Power Mode changes remain in System Settings instead of requiring administrator access. The Accessibility experiment in `Prototypes/` is not compiled into the app.
+macOS controls charging. Charge to Full Now appears only when the system reports an eligible hold or limit and allows the action. The app saves your exact charge limit before overriding it and verifies restoration before clearing that recovery record. Failed restoration keeps a visible retry action.
 
-## Verification
+**The app must be running to restore automatically.** After a force-quit, recovery resumes when you reopen it. Before uninstalling, choose **Restore** if shown, then quit normally.
 
-`test.sh` checks battery parsing, boundary readings, full/finishing/held/limited states, disconnected override rejection, private-interface absence, unknown states, action rejection, and routing to the correct temporary override with a fake client. It also renders discharging and charging icons at 0, 9, 85, 100, and unknown percent.
+Charging controls and Slow Charger reporting use private macOS interfaces, which can change in future updates. Unsupported or unknown states omit the relevant feature. Core percentage reporting uses IOKit. This app is not intended for Mac App Store submission.
 
-Verified on Apple silicon/macOS 26.5.2: release build/signature, live battery and smart-charge reads, the running native menu's contents, and Battery Settings navigation. The real command was exercised with a temporary 95% limit; the production backend was verified transitioning to override and back to exactly 95%. A test-only SIGKILL immediately after the real menu action also verified that reopening the unchanged release restored exactly 95%. Original test-machine settings were restored afterward. Regression tests include the observed 80% restore mismatch, durable recovery across service recreation, failure/retry, unplugging, and completion (not merely a rounded 100%). Intel, older macOS, full charge cycles, sleep/wake, and physical VoiceOver/right-click testing remain unverified.
+[Charging behavior, recovery, and known limits](docs/charge-to-full.md) · [Tests and device coverage](docs/verification.md)
 
-The final audit and its fixed findings are recorded in [docs/ponytail-audit.md](docs/ponytail-audit.md).
+## Development
 
-## License
+Run `./test.sh` for parsing, state, charging-recovery, notification, and icon-width checks. Run `./build.sh` to create the app. No package manager is needed.
 
-MIT. Contributions that keep the app small are welcome.
-
-## Ice compatibility and idle usage
-
-The status item has a stable title and autosave name. If Ice has cached the old unnamed item, quit and reopen Ice once, then drag Watt’s Inside from Hidden to Visible in Menu Bar Layout. This was verified with Ice 0.11.13-dev.2.
-
-A ten-minute installed-app test averaged 0.023% CPU, with 12–13 MB memory and no sustained growth. See [idle measurement](docs/idle-measurement.md) for raw samples, leak-detector findings, controls, and limits.
-
-Menu contrast, slow-charger reporting, and actual width measurements: [1.1.9 verification](docs/slow-charger-and-menu.md).
+Changes that keep the app small are welcome. The charging adapter is adapted from [Lithe](https://github.com/asmeurer/Lithe); see [third-party notices](THIRD_PARTY_NOTICES.md). Licensed under [MIT](LICENSE).
