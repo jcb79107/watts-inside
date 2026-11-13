@@ -6,7 +6,9 @@ A small, native macOS app that puts your battery percentage inside the menu-bar 
 
 Built with Swift, AppKit, and IOKit. No dependencies, analytics, network requests, polling timers, Dock icon, or background helper.
 
-[Latest release](https://github.com/jcb79107/watts-inside/releases/latest) · [Build from source](#install) · [MIT license](LICENSE)
+**[Download for Mac — Apple silicon (.zip)](https://github.com/jcb79107/watts-inside/releases/latest/download/Watts-Inside.zip)**
+
+[Release notes](https://github.com/jcb79107/watts-inside/releases/latest) · [Build from source](#build-from-source) · [MIT license](LICENSE)
 
 ## Small icon. Familiar menu.
 
@@ -35,7 +37,15 @@ A twenty-minute installed-app idle test of **1.1.10** averaged **0.072% CPU**, w
 
 ## Install
 
-Requires macOS 13 or newer and Xcode Command Line Tools with Swift 6 or newer. Source builds are the supported installation path and target your Mac’s architecture.
+Download the ZIP above, unzip it, and move **Watt’s Inside.app** to Applications. The prebuilt download is for **Apple silicon Macs (M-series)**, with macOS 13 or newer; tested on macOS 26.5.2.
+
+The app is not yet Developer ID signed or notarized. If macOS blocks it, try opening it once, then go to **System Settings → Privacy & Security → Open Anyway** and confirm. Only approve a download you trust from this repository. Do not disable Gatekeeper globally.
+
+Hide Apple’s battery icon in **System Settings → Menu Bar** (Control Center on older macOS). For automatic startup, add Watt’s Inside in **System Settings → General → Login Items**.
+
+### Build from source
+
+Requires Xcode Command Line Tools with Swift 6 or newer. Builds target your Mac’s architecture. Intel and older macOS versions have not been tested.
 
 ```sh
 git clone https://github.com/jcb79107/watts-inside.git
@@ -45,13 +55,7 @@ cd watts-inside
 open "build/Watt’s Inside.app"
 ```
 
-1. Move **Watt’s Inside.app** from `build/` to Applications.
-2. Hide Apple’s battery icon in **System Settings → Menu Bar** (Control Center on older macOS).
-3. For automatic startup, add Watt’s Inside in **System Settings → General → Login Items**.
-
-The prebuilt release is **Apple silicon (arm64) only**. Intel users must build from source; Intel and older macOS versions have not been tested.
-
-Release downloads are ad-hoc signed, not Developer ID signed or notarized. Gatekeeper may block downloaded builds; building from source is recommended. Do not disable Gatekeeper globally.
+Move the built app from `build/` to Applications, then follow the setup steps above.
 
 **Using Ice?** If an old unnamed item is cached, quit and reopen Ice, then move Watt’s Inside from Hidden to Visible in Menu Bar Layout. Verified with Ice 0.11.13-dev.2.
 
