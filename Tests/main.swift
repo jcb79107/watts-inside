@@ -70,6 +70,7 @@ final class FakeChargeClient: NSObject, SmartChargeClientProtocol {
     var fails = false
     var reject = false
     var calls: [String] = []
+    var rejectAfterMutation = false
     var failRestore = false
     var failSet = false
     override init() { super.init() }
@@ -85,6 +86,7 @@ final class FakeChargeClient: NSObject, SmartChargeClientProtocol {
     func temporarilyEnableCharging(_ error: NSErrorPointer) -> Bool { calls.append("optimized"); return !reject }
     func temporarilyDisableMCL(_ error: NSErrorPointer) -> Bool {
         calls.append("limit")
+        if rejectAfterMutation { enabled = 1; limit = 80; return false }
         if !reject { enabled = 3; limit = 100 }
         return !reject
     }
@@ -150,6 +152,32 @@ assert(service.savedLimit == nil && fake.limit == 95)
 try service.chargeToFullNow()
 try service.restoreIfFinished(battery: Battery(description: unplugged))
 assert(service.savedLimit == nil && fake.limit == 95)
+// The system can end the override itself before our next event.
+try service.chargeToFullNow()
+fake.enabled = 1
+fake.limit = 80
+try service.restoreIfFinished(battery: Battery(description: unplugged))
+assert(fake.limit == 95 && service.savedLimit == nil)
+// A failed mutation must not discard recovery after a partial policy change.
+fake.rejectAfterMutation = true
+assert((try? service.chargeToFullNow()) == nil)
+assert(service.savedLimit == 95)
+fake.rejectAfterMutation = false
+try service.restoreLimit()
+try service.chargeToFullNow()
+fake.fails = true
+assert((try? service.restoreIfFinished(battery: Battery(description: unplugged))) == nil)
+assert(service.savedLimit == 95)
+fake.fails = false
+fake.failSet = true
+assert((try? service.restoreLimit()) == nil)
+fake.failSet = false
+// A known failed restoration can retry even when battery telemetry is absent.
+try service.restoreIfFinished(battery: nil)
+assert(fake.limit == 95 && service.savedLimit == nil)
+var limitedFull = paused
+limitedFull[kIOPSIsChargedKey] = true
+assert(Battery(description: limitedFull)?.status == "Not Charging")
 fake.fails = true
 assert(service.state() == nil)
 fake.fails = false

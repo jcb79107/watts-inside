@@ -37,7 +37,7 @@ struct Battery {
 
     var status: String {
         if charging { return finishing ? "Finishing Charge" : "Charging" }
-        if pluggedIn { return charged ? "Fully Charged" : "Not Charging" }
+        if pluggedIn { return charged && percent == 100 ? "Fully Charged" : "Not Charging" }
         return percent <= 20 ? "Low Battery" : "On Battery"
     }
 

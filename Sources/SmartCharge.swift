@@ -136,7 +136,7 @@ final class SmartCharge {
         var error: NSError?
         let ok = current.chargeLimitEnabled ? client.temporarilyDisableMCL(&error) : client.temporarilyEnableCharging(&error)
         guard ok else {
-            if let after = state(), !after.overrideActive { forgetOverride() }
+            if let after = state(), !after.overrideActive, after.chargeLimit == savedLimit { forgetOverride() }
             throw Failure.rejected(error)
         }
         NSLog("WattsInside: charging override accepted; saved limit: %@", savedLimit.map(String.init) ?? "optimized charging")
@@ -163,10 +163,13 @@ final class SmartCharge {
     }
 
     func restoreIfFinished(battery: Battery?) throws {
-        guard savedLimit != nil, let battery, let current = state() else { return }
-        if !current.overrideActive && current.chargeLimit == savedLimit {
+        guard let target = savedLimit else { return }
+        guard let current = state() else { throw Failure.unavailable }
+        if !current.overrideActive && current.chargeLimit == target {
             forgetOverride()
-        } else if restorationPending || (current.overrideActive && (!battery.pluggedIn || (battery.percent == 100 && battery.charged && !battery.charging))) {
+        } else if restorationPending {
+            try restoreLimit()
+        } else if let battery, !battery.pluggedIn || (battery.percent == 100 && battery.charged && !battery.charging) {
             try restoreLimit()
         }
     }

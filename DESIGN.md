@@ -12,7 +12,7 @@ The primary interaction is a native NSMenu anchored to our status item. Right-cl
 
 ## State precedence
 
-Charging/Finishing Charge comes before full-charge detection. Fully Charged requires the system flag and external power, not a displayed 100. Explicit optimized charging engagement overrides generic Not Charging. A reported charge limit is described as reached only when charge is within two percentage points of that limit and charging has stopped. Missing data is unavailable, never assumed full or empty.
+Charging/Finishing Charge comes before full-charge detection. Fully Charged requires the system flag, external power, and displayed 100; the flag alone can also be set at a lower charge limit. Explicit optimized charging engagement overrides generic Not Charging. A reported charge limit is described as reached only when charge is within two percentage points of that limit and charging has stopped. Missing data is unavailable, never assumed full or empty.
 
 ## Charging API decision
 

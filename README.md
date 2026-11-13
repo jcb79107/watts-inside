@@ -43,7 +43,7 @@ open "build/Watt’s Inside.app"
 
 Drag the app to Applications to keep it. To start it at login, add it in System Settings → General → Login Items. Hide Apple's battery icon in System Settings → Menu Bar (Control Center on older macOS). Command-drag our icon to reposition it.
 
-The app does not automatically change system preferences. Delete the app to uninstall. Builds are locally ad-hoc signed, not Developer ID signed or notarized; downloaded binaries may trigger Gatekeeper. Source builds are the supported installation path. Do not disable Gatekeeper globally.
+Outside an explicitly requested charging override and its restoration, the app does not change system preferences. Before uninstalling, choose Restore if it is shown, then quit normally and delete the app. Builds are locally ad-hoc signed, not Developer ID signed or notarized; downloaded binaries may trigger Gatekeeper. Source builds are the supported installation path. Do not disable Gatekeeper globally.
 
 ## Deliberately small
 
@@ -55,7 +55,9 @@ The menu is ours, not a transplanted Control Center panel. It does not claim App
 
 `test.sh` checks battery parsing, boundary readings, full/finishing/held/limited states, disconnected override rejection, private-interface absence, unknown states, action rejection, and routing to the correct temporary override with a fake client. It also renders discharging, charging, and connected icons at 0, 9, 85, 100, and unknown percent.
 
-Verified on Apple silicon/macOS 26.5.2: release build/signature, live battery and smart-charge reads, the running native menu's contents, and Battery Settings navigation. The real command was exercised with a temporary 95% limit; the production backend was verified transitioning to override and back to exactly 95%. Original test-machine settings were restored afterward. Regression tests include the observed 80% restore mismatch, durable recovery across service recreation, failure/retry, unplugging, and completion (not merely a rounded 100%). Intel, older macOS, full charge cycles, sleep/wake, and physical VoiceOver/right-click testing remain unverified.
+Verified on Apple silicon/macOS 26.5.2: release build/signature, live battery and smart-charge reads, the running native menu's contents, and Battery Settings navigation. The real command was exercised with a temporary 95% limit; the production backend was verified transitioning to override and back to exactly 95%. A test-only SIGKILL immediately after the real menu action also verified that reopening the unchanged release restored exactly 95%. Original test-machine settings were restored afterward. Regression tests include the observed 80% restore mismatch, durable recovery across service recreation, failure/retry, unplugging, and completion (not merely a rounded 100%). Intel, older macOS, full charge cycles, sleep/wake, and physical VoiceOver/right-click testing remain unverified.
+
+The final audit and its fixed findings are recorded in [docs/ponytail-audit.md](docs/ponytail-audit.md).
 
 ## License
 
