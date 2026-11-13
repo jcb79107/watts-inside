@@ -30,7 +30,7 @@ The build is locally ad-hoc signed, not Developer ID signed or notarized. Source
 
 Two Swift source files. One native status item and one IOKit run-loop source. No preferences database, launch agent, updater, helper process, or package manager. Quit from its menu; uninstall by deleting the app. It reads only the internal Mac battery, not accessories or UPS devices. On a desktop Mac it shows battery unavailable.
 
-`test.sh` checks parsing, boundary values, adapter/charging distinctions, and rendering, and writes `build/preview.png`. Hardware verification was performed on an Apple silicon Mac running macOS 26.5.2; Intel, older macOS, full charge cycles, and sleep/wake transitions still need hardware testing.
+`test.sh` checks parsing, boundary values, adapter/charging distinctions, and rendering, and writes `build/preview.png`. Build, rendering, and a live battery read were verified on an Apple silicon Mac running macOS 26.5.2. The Mac was locked during the UI launch check, so menu-bar appearance and interaction remain unverified. Intel, older macOS, full charge cycles, and sleep/wake transitions still need hardware testing.
 
 ## License
 
