@@ -33,3 +33,7 @@ The supplied Better Battery 2 reference sets the proportions: a soft solid batte
 ### Menu-bar scale correction (1.1.5)
 
 The enlarged reference proportions were too prominent beside real menu-bar controls. Reduce the body from 16 to 13 points high, rounded digits from 13 to 11 points, and horizontal padding from 8 to 6 points. Reduce the terminal and charging bolt proportionally. Keep AppKit's standard status-item hit target and external spacing.
+
+### Balanced status-item padding (1.1.6)
+
+Set the status-item length to rendered image width plus 12 points and disable image scaling. A native AppKit layout probe measured a 44-point button containing the 32-point 100% image at x=6: exactly 6 points on both sides, including the terminal. Neighboring apps retain their own padding.

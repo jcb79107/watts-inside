@@ -83,7 +83,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             restoreError = nil
         } catch { restoreError = "Couldn’t restore limit. Select Restore to retry." }
         let summary = battery?.summary ?? "Battery unavailable"
-        item?.button?.image = batteryIcon(percent: battery?.percent, charging: battery?.charging ?? false)
+        let icon = batteryIcon(percent: battery?.percent, charging: battery?.charging ?? false)
+        item?.length = icon.size.width + 12
+        item?.button?.imageScaling = .scaleNone
+        item?.button?.image = icon
         item?.button?.window?.title = "Watt’s Inside"
         item?.button?.toolTip = summary
         item?.button?.setAccessibilityLabel("Battery: \(summary)")
