@@ -46,11 +46,16 @@ struct Battery {
     @MainActor
     func detailLines(smart: SmartCharge.State?) -> [String] {
         var lines = ["Power Source: " + (pluggedIn ? "Power Adapter" : "Battery")]
-        if pluggedIn, !charging, let smart, smart.optimizedChargingEngaged {
+        if pluggedIn, let smart, smart.overrideActive {
+            lines.append("Charging to Full")
+        } else if pluggedIn, !charging, let smart, smart.chargeLimitEnabled, smart.chargeLimit < 100 {
+            if abs(percent - smart.chargeLimit) <= 2 {
+                lines.append("Charged to \(smart.chargeLimit)% Limit")
+            } else {
+                lines.append("Charge Limit: \(smart.chargeLimit)%")
+            }
+        } else if pluggedIn, !charging, let smart, smart.optimizedChargingEngaged {
             lines.append("Charging On Hold")
-        } else if pluggedIn, !charging, let smart, smart.chargeLimitEnabled,
-                  smart.chargeLimit < 100, percent >= smart.chargeLimit - 2 {
-            lines.append("Charged to \(smart.chargeLimit)% Limit")
         } else {
             lines.append(status)
         }
@@ -71,7 +76,7 @@ struct Battery {
     @MainActor
     func canChargeToFull(_ smart: SmartCharge.State?) -> Bool {
         guard pluggedIn, let smart else { return false }
-        return smart.canHold && smart.overrideAllowed
+        return smart.canHold && smart.overrideAllowed && !smart.overrideActive
     }
 
 }

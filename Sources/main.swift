@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var item: NSStatusItem?
     private var source: CFRunLoopSource?
     private let menu = NSMenu()
+    private var restoreError: String?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -55,7 +56,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         if source == nil { menu.addItem(withTitle: "Live updates unavailable; reopen to refresh", action: nil, keyEquivalent: "") }
         menu.addItem(.separator())
-        if battery?.canChargeToFull(smart) == true {
+        if let saved = SmartCharge.shared.savedLimit {
+            let restore = menu.addItem(withTitle: "Restore \(saved)% Charge Limit", action: #selector(restoreChargeLimit), keyEquivalent: "")
+            restore.target = self
+            if let restoreError { menu.addItem(withTitle: restoreError, action: nil, keyEquivalent: "") }
+            menu.addItem(.separator())
+        } else if battery?.canChargeToFull(smart) == true {
             let charge = menu.addItem(withTitle: "Charge to Full Now", action: #selector(chargeToFull), keyEquivalent: "")
             charge.target = self
             menu.addItem(.separator())
@@ -69,6 +75,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc func refresh() {
         let battery = Battery.read()
+        do {
+            try SmartCharge.shared.restoreIfFinished(battery: battery)
+            restoreError = nil
+        } catch { restoreError = "Couldn’t restore limit. Select Restore to retry." }
         let summary = battery?.summary ?? "Battery unavailable"
         item?.button?.image = batteryIcon(percent: battery?.percent, charging: battery?.charging ?? false, pluggedIn: battery?.pluggedIn ?? false)
         item?.button?.toolTip = summary
@@ -91,6 +101,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
+    @objc private func restoreChargeLimit() {
+        do {
+            try SmartCharge.shared.restoreLimit()
+            restoreError = nil
+            refresh()
+        } catch {
+            restoreError = "Couldn’t restore limit. Select Restore to retry."
+            let alert = NSAlert()
+            alert.messageText = "Couldn’t Restore Charge Limit"
+            alert.informativeText = "Your original limit is saved. Try Restore again or set it in Battery Settings."
+            alert.addButton(withTitle: "Battery Settings…")
+            alert.addButton(withTitle: "OK")
+            if alert.runModal() == .alertFirstButtonReturn { openSettings() }
+        }
+    }
+
     @objc private func openSettings() {
         guard let url = URL(string: "x-apple.systempreferences:com.apple.Battery-Settings.extension") else { return }
         if !NSWorkspace.shared.open(url) {
@@ -99,6 +125,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             alert.informativeText = "Open System Settings, then choose Battery."
             alert.runModal()
         }
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard SmartCharge.shared.savedLimit != nil else { return .terminateNow }
+        restoreChargeLimit()
+        return SmartCharge.shared.savedLimit == nil ? .terminateNow : .terminateCancel
     }
 
     func applicationWillTerminate(_ notification: Notification) {

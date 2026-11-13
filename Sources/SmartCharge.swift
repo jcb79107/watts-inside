@@ -23,6 +23,7 @@ final class SmartCharge {
         var chargeLimit: Int
         /// Whether the system allows a "charge to full" override right now.
         var overrideAllowed: Bool
+        var overrideActive: Bool = false
 
         /// Whether either mechanism is configured to hold the charge. Whether
         /// it is holding right now also depends on being plugged in; see the
@@ -44,6 +45,13 @@ final class SmartCharge {
         }
     }
 
+    private let defaults: UserDefaults
+    var savedLimit: Int? {
+        let value = defaults.integer(forKey: "chargeOverrideLimit")
+        return (80...100).contains(value) ? value : nil
+    }
+    var restorationPending: Bool { defaults.bool(forKey: "chargeOverrideRestoring") }
+
     private let client: (any SmartChargeClientProtocol)?
 
     /// Loads the private client, or `nil` if it cannot be used.
@@ -56,6 +64,8 @@ final class SmartCharge {
             #selector(SmartChargeClientProtocol.getMCLLimit(_:)),
             #selector(SmartChargeClientProtocol.temporarilyEnableCharging(_:)),
             #selector(SmartChargeClientProtocol.temporarilyDisableMCL(_:)),
+            #selector(SmartChargeClientProtocol.enableMCL(_:)),
+            #selector(SmartChargeClientProtocol.setMCLLimit(_:error:)),
         ]
         let initializer = NSSelectorFromString("initWithClientName:")
         guard cls.instancesRespond(to: initializer),
@@ -67,8 +77,9 @@ final class SmartCharge {
         return unsafeBitCast(instance, to: (any SmartChargeClientProtocol).self)
     }
 
-    init(client: (any SmartChargeClientProtocol)? = SmartCharge.loadClient()) {
+    init(client: (any SmartChargeClientProtocol)? = SmartCharge.loadClient(), defaults: UserDefaults = .standard) {
         self.client = client
+        self.defaults = defaults
     }
 
     var isAvailable: Bool { client != nil }
@@ -87,7 +98,7 @@ final class SmartCharge {
         }
         error = nil
         let rawEnabled = client.isMCLCurrentlyEnabled(&error)
-        guard rawEnabled <= 1 else { return nil }
+        guard [0, 1, 3].contains(rawEnabled) else { return nil }
         let mclEnabled = rawEnabled == 1
         if let error {
             NSLog("WattsInside: charge limit state query failed: \(error.localizedDescription)")
@@ -98,37 +109,75 @@ final class SmartCharge {
             NSLog("WattsInside: charge limit query failed: \(error.localizedDescription)")
             return nil
         }
-        guard !mclEnabled || (1...100).contains(mclLimit) else { return nil }
+        guard !mclEnabled || (80...100).contains(mclLimit) else { return nil }
         return State(
             optimizedChargingEngaged: engaged.boolValue,
             chargeLimitEnabled: mclEnabled,
             chargeLimit: mclEnabled ? mclLimit : 100,
-            overrideAllowed: override.boolValue
+            overrideAllowed: override.boolValue,
+            overrideActive: rawEnabled == 3
         )
     }
 
-    /// Asks the system to charge to full now, the same way the battery menu
-    /// does: lift the charge limit if one is set, otherwise override
-    /// Optimized Battery Charging.
+    private func forgetOverride() {
+        defaults.removeObject(forKey: "chargeOverrideLimit")
+        defaults.removeObject(forKey: "chargeOverrideRestoring")
+        defaults.synchronize()
+    }
+
     func chargeToFullNow() throws {
-        guard let client, let current = state(), current.canHold, current.overrideAllowed else { throw Failure.unavailable }
+        guard let client, let current = state(), current.canHold, current.overrideAllowed,
+              !current.overrideActive, savedLimit == nil else { throw Failure.unavailable }
+        if current.chargeLimitEnabled {
+            // Persist before changing hardware policy so quitting/crashing cannot lose the original limit.
+            defaults.set(current.chargeLimit, forKey: "chargeOverrideLimit")
+            guard defaults.synchronize() else { throw Failure.rejected(nil) }
+        }
         var error: NSError?
-        let limited = current.chargeLimitEnabled
-        if let error {
-            NSLog("WattsInside: charge limit state query failed: \(error.localizedDescription)")
+        let ok = current.chargeLimitEnabled ? client.temporarilyDisableMCL(&error) : client.temporarilyEnableCharging(&error)
+        guard ok else {
+            if let after = state(), !after.overrideActive { forgetOverride() }
             throw Failure.rejected(error)
         }
-        let ok = limited ? client.temporarilyDisableMCL(&error) : client.temporarilyEnableCharging(&error)
-        guard ok else {
-            NSLog("WattsInside: charge to full request failed: \(error?.localizedDescription ?? "unknown error")")
-            throw Failure.rejected(error)
+        NSLog("WattsInside: charging override accepted; saved limit: %@", savedLimit.map(String.init) ?? "optimized charging")
+    }
+
+    func restoreLimit() throws {
+        guard let client, let target = savedLimit, let before = state() else { throw Failure.unavailable }
+        defaults.set(true, forKey: "chargeOverrideRestoring")
+        guard defaults.synchronize() else { throw Failure.rejected(nil) }
+        var error: NSError?
+        if before.overrideActive {
+            guard client.enableMCL(&error) else { throw Failure.rejected(error) }
+        }
+        guard let resumed = state(), !resumed.overrideActive else { throw Failure.rejected(nil) }
+        if resumed.chargeLimit != target {
+            // enableMCL restored 80 instead of the saved 95 on macOS 26.5.2; correct once, then verify.
+            guard client.setMCLLimit(UInt8(target), error: &error) else { throw Failure.rejected(error) }
+        }
+        guard let verified = state(), !verified.overrideActive, verified.chargeLimit == target else {
+            throw Failure.rejected(nil)
+        }
+        NSLog("WattsInside: verified restoration to %d%%", target)
+        forgetOverride()
+    }
+
+    func restoreIfFinished(battery: Battery?) throws {
+        guard savedLimit != nil, let battery, let current = state() else { return }
+        if !current.overrideActive && current.chargeLimit == savedLimit {
+            forgetOverride()
+        } else if restorationPending || (current.overrideActive && (!battery.pluggedIn || (battery.percent == 100 && battery.charged && !battery.charging))) {
+            try restoreLimit()
         }
     }
+
 }
 
 /// The subset of `PowerUISmartChargeClient` that Control Center's battery
 /// menu uses, declared so it can be called through the Objective-C runtime.
 @objc protocol SmartChargeClientProtocol {
+    @objc(enableMCL:) func enableMCL(_ error: NSErrorPointer) -> Bool
+    @objc(setMCLLimit:error:) func setMCLLimit(_ limit: UInt8, error: NSErrorPointer) -> Bool
     init(clientName: String)
     @objc(isOBCEngaged:chargeLimit:chargingOverrideAllowed:withError:)
     func isOBCEngaged(_ engaged: UnsafeMutablePointer<ObjCBool>, chargeLimit: UnsafeMutablePointer<UInt>,

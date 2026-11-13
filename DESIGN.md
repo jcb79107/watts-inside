@@ -16,7 +16,7 @@ Charging/Finishing Charge comes before full-charge detection. Fully Charged requ
 
 ## Charging API decision
 
-A guarded, runtime-loaded private PowerUI client supports the temporary action without Accessibility. This is a pragmatic direct-download compatibility tradeoff, documented in the README. Unknown raw states, failed queries, missing methods, absent power, and denied overrides never enable the command. No permanent policy writes or automated SMC manipulation.
+A guarded, runtime-loaded private PowerUI client supports the temporary action without Accessibility. This is a pragmatic direct-download compatibility tradeoff, documented in the README. Unknown raw states, failed queries, missing methods, absent power, and denied overrides never enable the command. The exact original limit is saved before a temporary override. On completion, disconnect, normal quit, or explicit Restore, the app ends the override and verifies the limit; if macOS restored a different limit, one corrective write restores the saved value. A durable recovery record survives failure or force-quit. No SMC manipulation.
 
 ## Rejected native-menu handoff
 
