@@ -7,8 +7,8 @@ if [ ! -x "$actool" ]; then
     echo "Full Xcode is required to rebuild icon assets. Normal app builds use the committed assets." >&2
     exit 1
 fi
-catalog="build/Brand.xcassets"
-iconset="$catalog/AppIcon.appiconset"
+catalog="build/GraphiteBrand.xcassets"
+iconset="$catalog/AppIconGraphite.appiconset"
 mkdir -p "$iconset" build/brand-assets
 printf '{"images":[' > "$iconset/Contents.json"
 separator=""
@@ -23,5 +23,6 @@ for size in 16 32 128 256 512; do
     done
 done
 printf '],"info":{"version":1,"author":"xcode"}}' >> "$iconset/Contents.json"
-"$actool" "$catalog" --compile build/brand-assets --platform macosx --minimum-deployment-target 13.0 --app-icon AppIcon --output-partial-info-plist build/brand-assets/icon-info.plist
-cp build/brand-assets/AppIcon.icns build/brand-assets/Assets.car Assets/
+"$actool" "$catalog" --compile build/brand-assets --platform macosx --minimum-deployment-target 13.0 --app-icon AppIconGraphite --output-partial-info-plist build/brand-assets/icon-info.plist
+cp build/brand-assets/AppIconGraphite.icns Assets/AppIcon.icns
+cp build/brand-assets/Assets.car Assets/

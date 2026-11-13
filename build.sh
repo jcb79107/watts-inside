@@ -4,7 +4,8 @@ cd "$(dirname "$0")"
 app="build/Watt’s Inside.app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 cp LICENSE THIRD_PARTY_NOTICES.md "$app/Contents/Resources/"
-cp Assets/AppIcon.icns Assets/Assets.car "$app/Contents/Resources/"
+cp Assets/AppIcon.icns "$app/Contents/Resources/AppIconGraphite.icns"
+cp Assets/Assets.car "$app/Contents/Resources/"
 xcrun swiftc -import-objc-header Sources/SystemNotifications.h -swift-version 6 -O -target "$(uname -m)-apple-macosx13.0" Sources/*.swift -o "$app/Contents/MacOS/WattsInside"
 cat > "$app/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -12,12 +13,12 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <plist version="1.0"><dict>
 <key>CFBundleExecutable</key><string>WattsInside</string>
 <key>CFBundleIdentifier</key><string>io.github.jcb79107.watts-inside</string>
-<key>CFBundleIconName</key><string>AppIcon</string>
-<key>CFBundleIconFile</key><string>AppIcon</string>
+<key>CFBundleIconName</key><string>AppIconGraphite</string>
+<key>CFBundleIconFile</key><string>AppIconGraphite</string>
 <key>CFBundleName</key><string>Watt’s Inside</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>1.2.0</string>
-<key>CFBundleVersion</key><string>13</string>
+<key>CFBundleShortVersionString</key><string>1.2.1</string>
+<key>CFBundleVersion</key><string>14</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>LSUIElement</key><true/>
 <key>LSMultipleInstancesProhibited</key><true/>
