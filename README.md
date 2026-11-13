@@ -68,3 +68,7 @@ Charging controls and Slow Charger reporting use private macOS interfaces, which
 Run `./test.sh` for parsing, state, charging-recovery, notification, and icon-width checks. Run `./build.sh` to create the app. No package manager is needed.
 
 Changes that keep the app small are welcome. The charging adapter is adapted from [Lithe](https://github.com/asmeurer/Lithe); see [third-party notices](THIRD_PARTY_NOTICES.md). Licensed under [MIT](LICENSE).
+
+## Brand assets
+
+The app icon, colors, typography, and usage notes live in the [brand guide](docs/brand.md). With full Xcode installed, rebuild the bundled ICNS and asset catalog from the master PNG by running `./scripts/build-icons.sh` before `./build.sh`.
