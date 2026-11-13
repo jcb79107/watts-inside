@@ -209,3 +209,19 @@ for state: UInt64 in [0, 1, 2, UInt64.max, 0] {
 }
 assert(notify_cancel(testToken) == NOTIFY_STATUS_OK)
 print("System notification state checks passed; live Slow Charger: \(readSlowCharger())")
+
+// Incomplete telemetry must not masquerade as a disconnect and restore policy.
+var unknownPower = description(99)
+unknownPower.removeValue(forKey: kIOPSPowerSourceStateKey)
+assert(Battery(description: unknownPower) == nil)
+unknownPower[kIOPSPowerSourceStateKey] = "Unknown Power"
+assert(Battery(description: unknownPower) == nil)
+fake.enabled = 1
+fake.limit = 95
+try service.chargeToFullNow()
+let callsBeforeUnknownPower = fake.calls.count
+try service.restoreIfFinished(battery: Battery(description: unknownPower))
+assert(service.savedLimit == 95 && fake.calls.count == callsBeforeUnknownPower)
+try service.restoreLimit()
+assert(service.savedLimit == nil && fake.limit == 95)
+print("Unknown power-source recovery checks passed.")

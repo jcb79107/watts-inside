@@ -15,14 +15,16 @@ struct Battery {
               description[kIOPSIsPresentKey] as? Bool == true,
               let current = description[kIOPSCurrentCapacityKey] as? Int,
               let maximum = description[kIOPSMaxCapacityKey] as? Int,
-              maximum > 0, current >= 0 else { return nil }
+              maximum > 0, current >= 0,
+              let powerSource = description[kIOPSPowerSourceStateKey] as? String,
+              [kIOPSACPowerValue, kIOPSBatteryPowerValue].contains(powerSource) else { return nil }
         percent = Int((min(Double(current) / Double(maximum), 1) * 100).rounded())
         charged = description[kIOPSIsChargedKey] as? Bool ?? false
         finishing = description[kIOPSIsFinishingChargeKey] as? Bool ?? false
         minutesToFull = description[kIOPSTimeToFullChargeKey] as? Int
         health = description[kIOPSBatteryHealthKey] as? String
         charging = description[kIOPSIsChargingKey] as? Bool ?? false
-        pluggedIn = description[kIOPSPowerSourceStateKey] as? String == kIOPSACPowerValue
+        pluggedIn = powerSource == kIOPSACPowerValue
     }
 
     static func read() -> Battery? {

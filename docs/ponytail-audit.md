@@ -39,3 +39,15 @@ Installation and login startup use normal macOS controls, documented in README. 
 Verdict: All concrete audit findings fixed. Suitable for local daily use with the documented private-API and platform-validation limits; not a signed/notarized public-distribution guarantee.
 
 Not checked: physical full-charge or unplug cycles, sleep/wake, login/reboot startup, OBC-only hold, physical VoiceOver/right-click use, Intel, older macOS, multiple displays, or long-duration energy measurements. Private PowerUI calls are synchronous and can change with macOS updates. A force-quit needs reopening for recovery; finish or restore an app-owned override before changing the limit elsewhere.
+
+## Follow-up audit — 1.1.10, November 13, 2026
+
+Reviewed current production sources, regression tests, build/test scripts, current README and linked verification/charging docs, license packaging, and GitHub repository/release metadata. GitHub main matched the local commit; no open issues or pull requests. The 1.1.9 local release archive SHA-256 matched GitHub’s published asset digest.
+
+**Fixed:** missing or unrecognized IOKit power-source state was interpreted as battery power. That could trigger charge-limit restoration on an incomplete reading. The shared Battery parser now accepts only explicit AC or Battery state; other values return unavailable. The added test verifies both missing/unknown states and proves incomplete telemetry does not issue a restoration call or discard the saved 95% limit. Previously started recovery still retries according to the existing tested behavior.
+
+Passed the full regression suite, optimized build, shell syntax checks, strict installed-bundle signature check, bundled license comparisons, all repository Markdown local-link checks, and live menu opening after installation. Existing slow-charger and all-percentage width checks passed. Live policy before and after installation: limit 100%, no active override, no saved restoration record. Tests use an isolated fake charging client and isolated notification name; this audit did not change real charging policy.
+
+No dependencies, polling, helper, architecture changes, or cosmetic redesign added. No other concrete blocking defect found in the reviewed scope. The release binary is Apple silicon; Intel users must build from source and remain untested.
+
+Not repeated: the ten-minute idle run, real force-quit charging override, physical charger transitions/full-charge cycle, VoiceOver interaction, login/reboot, Intel, or older macOS. Private macOS charging interfaces remain the principal compatibility risk; source-build/notarization limitations still apply.
