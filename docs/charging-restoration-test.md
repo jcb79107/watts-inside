@@ -36,4 +36,18 @@ After testing, restored the original 100% setting through System Settings and ve
 
 ## Remaining limits
 
-No physical discharge/recharge cycle, unplug/replug, crash/relaunch hardware cycle, or OBC-only hold was performed. Those branches have fake-client tests where applicable. Private API behavior on other macOS versions is not established. A force-quit leaves no background worker; reopen the app to recover its saved limit.
+No physical discharge/recharge cycle, unplug/replug, or OBC-only hold was performed. Those branches have fake-client tests where applicable. Private API behavior on other macOS versions is not established. A force-quit leaves no background worker; reopen the app to recover its saved limit.
+
+## Real force-kill and reopen test
+
+Passed November 13, 2026, on the same Mac with the battery already full.
+
+A scratch build used the production app sources and bundle identifier with one test-only addition: `kill(getpid(), SIGKILL)` immediately after `chargeToFullNow()` returned, before `refresh()`. This prevents immediate completion handling from hiding the crash window. No crash hook was added to the released app.
+
+1. Verified original limit 100 with no pending recovery record; temporarily set 95.
+2. Activated the actual native menu's Charge to Full Now command through Accessibility.
+3. Confirmed the process exited without termination cleanup. An independent process read active override=true, limit=100, saved recovery limit=95.
+4. Opened the unchanged v1.1.1 release app. Its startup path restored limit=95, override=false, saved record=nil.
+5. Restored original limit=100. System Settings independently confirmed 100 and Optimized Battery Charging on. The release app remained running.
+
+No production fix was needed. This establishes real persistent recovery after SIGKILL at the accepted-override boundary, on an already-full battery; it does not establish behavior throughout a physical charging cycle.
