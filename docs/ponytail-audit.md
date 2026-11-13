@@ -51,3 +51,13 @@ Passed the full regression suite, optimized build, shell syntax checks, strict i
 No dependencies, polling, helper, architecture changes, or cosmetic redesign added. No other concrete blocking defect found in the reviewed scope. The release binary is Apple silicon; Intel users must build from source and remain untested.
 
 Not repeated: the ten-minute idle run, real force-quit charging override, physical charger transitions/full-charge cycle, VoiceOver interaction, login/reboot, Intel, or older macOS. Private macOS charging interfaces remain the principal compatibility risk; source-build/notarization limitations still apply.
+
+## Share-readiness check — 1.2.1, November 13, 2026
+
+Downloaded all three assets from the public GitHub 1.2.1 release. The extracted application bundle matches the installed Applications bundle byte-for-byte; its strict code signature validates. The release icon PNG and README banner match the current repository files byte-for-byte. Bundle version/build are 1.2.1/14 and both icon keys identify AppIconGraphite. Graphite/silver palette, app name, tagline, repository description, and brand guide agree. Earlier green release notes remain historical records.
+
+The full regression suite passed. A fresh source tree exported from Git built and signed successfully using the committed icon assets, with no untracked files required. All local Markdown and image links resolve. No new runtime bug or branding mismatch was found. Clarified in README that the prebuilt download is arm64 only; Intel source builds remain untested.
+
+Ready to share as an open-source utility with the stated installation limits. It is not a notarized, friction-free consumer download: Gatekeeper may block the ad-hoc-signed binary, and private charging interfaces can change. No charging policy was changed during this pass.
+
+Not repeated: physical charging/recovery cycles, long idle run, Intel/older macOS, or tinted appearance modes. No additional dependencies or features added.

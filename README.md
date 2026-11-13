@@ -49,6 +49,8 @@ open "build/Watt’s Inside.app"
 2. Hide Apple’s battery icon in **System Settings → Menu Bar** (Control Center on older macOS).
 3. For automatic startup, add Watt’s Inside in **System Settings → General → Login Items**.
 
+The prebuilt release is **Apple silicon (arm64) only**. Intel users must build from source; Intel and older macOS versions have not been tested.
+
 Release downloads are ad-hoc signed, not Developer ID signed or notarized. Gatekeeper may block downloaded builds; building from source is recommended. Do not disable Gatekeeper globally.
 
 **Using Ice?** If an old unnamed item is cached, quit and reopen Ice, then move Watt’s Inside from Hidden to Visible in Menu Bar Layout. Verified with Ice 0.11.13-dev.2.
