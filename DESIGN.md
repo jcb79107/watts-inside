@@ -1,60 +1,27 @@
-# One change: the icon
+# A battery icon, with a familiar native menu
 
-Watt’s Inside should replace the battery glyph, not redesign battery management.
+The primary interaction is a native NSMenu anchored to our status item. Right-click or Control-click exposes Quit. No onboarding, preferences window, Accessibility prompt, charts, or helper process.
 
-## Interaction contract
+## What people need
 
-- Left click: Apple's actual battery menu, including the controls and information macOS chooses to show on this machine.
-- Right click: app maintenance only (Quit). No app branding in the ordinary battery experience.
-- Keyboard and VoiceOver: the same primary action as left click; an accessible current percentage and power-state description.
-- No extra dashboards, onboarding tours, animations, charging controls, or estimated battery-health advice.
+1. Check charge without clicking: number inside the battery; bolt for charging, plug for connected/not charging.
+2. Understand why charging stopped: distinguish explicit macOS hold/limit state from generic Not Charging. Never infer optimized charging from the percentage alone.
+3. Leave with a full battery: offer Charge to Full Now only when the system reports that the action is meaningful and allowed. Revalidate at activation, let macOS own the temporary override, show failures.
+4. Extend battery life: show Low Power Mode state and take the user to the actual system control. Do not add a password prompt or administrator helper for a toggle.
+5. Diagnose a problem: report the system's basic health category and provide Battery Settings. Do not fabricate a significant-energy app list from CPU usage.
 
-## State decisions
+## State precedence
 
-| State | Replacement icon | Clicked experience |
-| --- | --- | --- |
-| Discharging | Percentage inside battery | Apple's battery menu |
-| Charging | Percentage with charging bolt | Apple's charge status and estimate, when available |
-| Connected, not charging | Percentage with plug marker | Apple's explanation; never infer the cause |
-| Optimized charging hold | Connected icon | Apple's hold explanation and Charge to Full Now |
-| Charge limit reached | Connected icon | Apple's limit text and Charge to Full Now |
-| Fully charged | Connected icon | Apple's charged state |
-| Low Power Mode | Percentage remains legible; native semantic treatment to be verified against the system | Apple's energy-mode controls |
-| Low battery | Native warning treatment to be verified against the system | Apple's battery status |
-| Service recommended | Preserve readable percentage | Apple's diagnostic wording, without inventing a diagnosis |
-| Missing/unreadable battery | Question mark; accessible unavailable label | A clear unavailable state; never retain a stale percentage |
+Charging/Finishing Charge comes before full-charge detection. Fully Charged requires the system flag and external power, not a displayed 100. Explicit optimized charging engagement overrides generic Not Charging. A reported charge limit is described as reached only when charge is within two percentage points of that limit and charging has stopped. Missing data is unavailable, never assumed full or empty.
 
-Keep the shape steady where possible, use the system typeface, preserve contrast in light/dark and selected states, and never use color alone to communicate status. Display a charging bolt only while charging. Do not call a rounded 100% reading fully charged without the system's charged flag.
+## Charging API decision
 
-## Feasibility gate — not implemented
+A guarded, runtime-loaded private PowerUI client supports the temporary action without Accessibility. This is a pragmatic direct-download compatibility tradeoff, documented in the README. Unknown raw states, failed queries, missing methods, absent power, and denied overrides never enable the command. No permanent policy writes or automated SMC manipulation.
 
-The current app still uses its own minimal NSMenu. AppKit exposes menus for an app's own status items; no supported API for borrowing Control Center's battery menu has been identified.
+## Rejected native-menu handoff
 
-Investigate an Accessibility handoff on the actual target Mac before implementation. Verify whether the native battery control remains reachable with Apple's menu-bar icon hidden, whether its menu opens at an acceptable location, and whether keyboard dismissal and VoiceOver work. Do not ship a solution that requires duplicate visible battery icons, guessed screen coordinates, or silently changes system preferences. Any Accessibility permission must be explained and granted by the user; never enable it automatically.
+The Accessibility prototype proved that hiding the native battery icon removes its direct action, but the Battery tile in Control Center can still open Apple's real panel. That intermediate panel opens in Control Center's location and requires Accessibility plus tile setup. The user chose a native menu under our own icon instead. The probe is retained for reproducibility, not shipped or used by the app.
 
-If that handoff cannot satisfy these conditions, report the incompatibility rather than claiming a cloned menu provides the same experience. Charging controls and significant-energy information cannot be replaced with invented rows or inert buttons.
+## Visual reference
 
-## Validation required
-
-Inspect the native menu and accessibility tree while unlocked; test hidden/visible native battery, click/keyboard/VoiceOver, dismissal, appearance, charger transitions, charging holds, charge limits, and wake. The Mac was subsequently unlocked and the native popup was inspected; the handoff behavior remains unverified.
-
-## Inspection result — November 13, 2026
-
-The open popup belongs to `com.apple.controlcenter`, window `Control Center`. Its accessible content was:
-
-- `battery-header`: Battery; Power Source: Power Adapter; Fully Charged; No Apps Using Significant Energy.
-- Battery Settings… button.
-
-The inspection tool then reported `noWindowsAvailable`, followed by a timeout when reading Control Center again. The available snapshot contained the popup contents, not a persistent battery menu-bar action. This establishes that the open menu can be read, not that our app can invoke it. No hidden-icon test succeeded or was performed, and no system settings or permissions were changed.
-
-AppKit's documented `NSStatusItem.menu` accepts an app-owned NSMenu. No public borrowing API was identified. Accessibility actions are a separate possible automation route, not an embeddable native menu; their availability with the native icon hidden, positioning, and permission behavior still require a successful prototype. Do not infer that route is impossible merely from the inspection tool's timeout.
-
-References:
-- https://developer.apple.com/documentation/appkit/nsstatusitem/menu
-- https://developer.apple.com/documentation/applicationservices/axuielement_h
-
-Decision: do not add an unverified native-menu bridge to the released app. Exact native-menu replacement is not currently demonstrated.
-
-## Prototype supersedes earlier feasibility notes
-
-A successful hidden-icon route was tested using the Battery tile in Control Center. See [Prototypes/README.md](Prototypes/README.md) for the procedure, observed results, restored settings, and integration limits. The earlier inability to inspect the menu was a tool/sandbox limitation, not proof that the handoff could not work. Production integration remains separate from this successful probe.
+The supplied Apple website analysis reinforces system typography, restrained hierarchy, and minimal decoration. Website-specific display sizes, blue pill buttons, and marketing-page spacing do not apply to this native utility. NSMenu supplies system spacing, selection, colors, and appearance; only the battery glyph and heading weight are custom.

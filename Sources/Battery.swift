@@ -5,6 +5,10 @@ struct Battery {
     let percent: Int
     let charging: Bool
     let pluggedIn: Bool
+    let charged: Bool
+    let finishing: Bool
+    let minutesToFull: Int?
+    let health: String?
 
     init?(description: [String: Any]) {
         guard description[kIOPSTypeKey] as? String == kIOPSInternalBatteryType,
@@ -13,6 +17,10 @@ struct Battery {
               let maximum = description[kIOPSMaxCapacityKey] as? Int,
               maximum > 0, current >= 0 else { return nil }
         percent = Int((min(Double(current) / Double(maximum), 1) * 100).rounded())
+        charged = description[kIOPSIsChargedKey] as? Bool ?? false
+        finishing = description[kIOPSIsFinishingChargeKey] as? Bool ?? false
+        minutesToFull = description[kIOPSTimeToFullChargeKey] as? Int
+        health = description[kIOPSBatteryHealthKey] as? String
         charging = description[kIOPSIsChargingKey] as? Bool ?? false
         pluggedIn = description[kIOPSPowerSourceStateKey] as? String == kIOPSACPowerValue
     }
@@ -27,24 +35,60 @@ struct Battery {
         return nil
     }
 
-    var summary: String {
-        "\(percent)% — " + (charging ? "Charging" : pluggedIn ? "Power adapter" : "On battery")
+    var status: String {
+        if charging { return finishing ? "Finishing Charge" : "Charging" }
+        if pluggedIn { return charged ? "Fully Charged" : "Not Charging" }
+        return percent <= 20 ? "Low Battery" : "On Battery"
     }
+
+    var summary: String { "\(percent)% — \(status)" }
+
+    @MainActor
+    func detailLines(smart: SmartCharge.State?) -> [String] {
+        var lines = ["Power Source: " + (pluggedIn ? "Power Adapter" : "Battery")]
+        if pluggedIn, !charging, let smart, smart.optimizedChargingEngaged {
+            lines.append("Charging On Hold")
+        } else if pluggedIn, !charging, let smart, smart.chargeLimitEnabled,
+                  smart.chargeLimit < 100, percent >= smart.chargeLimit - 2 {
+            lines.append("Charged to \(smart.chargeLimit)% Limit")
+        } else {
+            lines.append(status)
+        }
+        if charging, !finishing, let minutes = minutesToFull, minutes > 0 {
+            let formatter = DateComponentsFormatter()
+            formatter.allowedUnits = [.hour, .minute]
+            formatter.unitsStyle = .short
+            if let time = formatter.string(from: TimeInterval(minutes) * 60) {
+                lines.append("About \(time) Until Full")
+            }
+        }
+
+        if health == kIOPSPoorValue { lines.append("Battery Health: Service Recommended") }
+        if health == kIOPSFairValue { lines.append("Battery Health: Reduced Capacity") }
+        return lines
+    }
+
+    @MainActor
+    func canChargeToFull(_ smart: SmartCharge.State?) -> Bool {
+        guard pluggedIn, let smart else { return false }
+        return smart.canHold && smart.overrideAllowed
+    }
+
 }
 
 @MainActor
-func batteryIcon(percent: Int?, charging: Bool) -> NSImage {
+func batteryIcon(percent: Int?, charging: Bool, pluggedIn: Bool = false) -> NSImage {
     let text = percent.map(String.init) ?? "?"
     let font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .heavy)
     let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.black]
     let textSize = (text as NSString).size(withAttributes: attributes)
-    let bodyWidth = max(25, ceil(textSize.width) + 8 + (charging ? 9 : 0))
+    let bodyWidth = max(25, ceil(textSize.width) + 8 + ((charging || pluggedIn) ? 9 : 0))
     let image = NSImage(size: NSSize(width: bodyWidth + 4, height: 18), flipped: false) { _ in
         NSColor.black.setFill()
         NSBezierPath(roundedRect: NSRect(x: 0, y: 1, width: bodyWidth, height: 16), xRadius: 4, yRadius: 4).fill()
         NSBezierPath(roundedRect: NSRect(x: bodyWidth + 1, y: 6, width: 2, height: 6), xRadius: 1, yRadius: 1).fill()
         NSGraphicsContext.current?.compositingOperation = .destinationOut
-        let textX = charging ? 4 : (bodyWidth - textSize.width) / 2
+        let textX = (charging || pluggedIn) ? 4 : (bodyWidth - textSize.width) / 2
         (text as NSString).draw(at: NSPoint(x: textX, y: (18 - textSize.height) / 2), withAttributes: attributes)
         if charging {
             let x = bodyWidth - 10
@@ -57,6 +101,12 @@ func batteryIcon(percent: Int?, charging: Bool) -> NSImage {
             bolt.line(to: NSPoint(x: x + 5, y: 10))
             bolt.close()
             bolt.fill()
+        } else if pluggedIn {
+            let x = bodyWidth - 10
+            NSBezierPath(roundedRect: NSRect(x: x + 1, y: 6, width: 7, height: 5), xRadius: 2, yRadius: 2).fill()
+            NSRect(x: x + 2, y: 10, width: 1.5, height: 4).fill()
+            NSRect(x: x + 5.5, y: 10, width: 1.5, height: 4).fill()
+            NSRect(x: x + 3.5, y: 3, width: 2, height: 4).fill()
         }
         return true
     }
