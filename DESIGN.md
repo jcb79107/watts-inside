@@ -37,3 +37,7 @@ The enlarged reference proportions were too prominent beside real menu-bar contr
 ### Balanced status-item padding (1.1.6)
 
 Set the status-item length to rendered image width plus 12 points and disable image scaling. A native AppKit layout probe measured a 44-point button containing the 32-point 100% image at x=6: exactly 6 points on both sides, including the terminal. Neighboring apps retain their own padding.
+
+### Visible-gap verification (1.1.7)
+
+A direct desktop capture at 2× scale, with Apple's battery on the left and Wi-Fi on the right, measured 44 empty pixels left and 48 right. Add a two-point leading inset to the image and reduce the button's remaining padding by two points, keeping total item width unchanged. This shifts visible artwork one point right. A fresh direct capture measured 46 empty pixels on each side: Apple terminal ended at x=2313, our artwork occupied x=2360…2425, Wi-Fi started at x=2472. This is verified for this arrangement; neighboring items may have their own optical insets. Do not add desktop scanning to the app.

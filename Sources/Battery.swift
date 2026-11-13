@@ -89,7 +89,10 @@ func batteryIcon(percent: Int?, charging: Bool) -> NSImage {
     let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.black]
     let textSize = (text as NSString).size(withAttributes: attributes)
     let bodyWidth = max(24, ceil(textSize.width) + 6 + (charging ? 8 : 0))
-    let image = NSImage(size: NSSize(width: bodyWidth + 3, height: 18), flipped: false) { _ in
+    let image = NSImage(size: NSSize(width: bodyWidth + 5, height: 18), flipped: false) { _ in
+        let opticalOffset = NSAffineTransform()
+        opticalOffset.translateX(by: 2, yBy: 0)
+        opticalOffset.concat()
         NSColor.black.setFill()
         NSBezierPath(roundedRect: NSRect(x: 0, y: 2.5, width: bodyWidth, height: 13), xRadius: 3.5, yRadius: 3.5).fill()
         let terminal = NSBezierPath()

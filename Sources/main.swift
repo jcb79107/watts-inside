@@ -84,7 +84,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         } catch { restoreError = "Couldn’t restore limit. Select Restore to retry." }
         let summary = battery?.summary ?? "Battery unavailable"
         let icon = batteryIcon(percent: battery?.percent, charging: battery?.charging ?? false)
-        item?.length = icon.size.width + 12
+        // The image includes a two-point leading inset for optical balance beside system icons.
+        item?.length = icon.size.width + 10
         item?.button?.imageScaling = .scaleNone
         item?.button?.image = icon
         item?.button?.window?.title = "Watt’s Inside"
