@@ -71,4 +71,4 @@ Changes that keep the app small are welcome. The charging adapter is adapted fro
 
 ## Brand assets
 
-The app icon, colors, typography, and usage notes live in the [brand guide](docs/brand.md). With full Xcode installed, rebuild the bundled ICNS and asset catalog from the master PNG by running `./scripts/build-icons.sh` before `./build.sh`.
+The graphite-on-silver app icon, colors, typography, and usage notes live in the [brand guide](docs/brand.md). Download the [icon PNG](https://github.com/jcb79107/watts-inside/releases/latest/download/AppIcon.png) or [banner](https://github.com/jcb79107/watts-inside/releases/latest/download/readme-banner.png) from the latest release. With full Xcode installed, rebuild the bundled ICNS and asset catalog from the master PNG by running `./scripts/build-icons.sh` before `./build.sh`.
