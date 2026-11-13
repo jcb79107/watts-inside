@@ -29,3 +29,7 @@ The supplied Apple website analysis reinforces system typography, restrained hie
 ## Reference-led icon refinement (1.1.4)
 
 The supplied Better Battery 2 reference sets the proportions: a soft solid battery body, rounded terminal, generous rounded numerals, and an internal charging bolt. Use the rounded system font at 13 points/heavy within a 16-point-tall body, with native template coloring. The number stays visible while charging. No extra state glyph for merely being connected. Layout expands only enough for the digits and bolt.
+
+### Menu-bar scale correction (1.1.5)
+
+The enlarged reference proportions were too prominent beside real menu-bar controls. Reduce the body from 16 to 13 points high, rounded digits from 13 to 11 points, and horizontal padding from 8 to 6 points. Reduce the terminal and charging bolt proportionally. Keep AppKit's standard status-item hit target and external spacing.

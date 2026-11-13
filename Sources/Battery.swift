@@ -84,31 +84,31 @@ struct Battery {
 @MainActor
 func batteryIcon(percent: Int?, charging: Bool) -> NSImage {
     let text = percent.map(String.init) ?? "?"
-    let base = NSFont.systemFont(ofSize: 13, weight: .heavy)
-    let font = base.fontDescriptor.withDesign(.rounded).flatMap { NSFont(descriptor: $0, size: 13) } ?? base
+    let base = NSFont.systemFont(ofSize: 11, weight: .heavy)
+    let font = base.fontDescriptor.withDesign(.rounded).flatMap { NSFont(descriptor: $0, size: 11) } ?? base
     let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.black]
     let textSize = (text as NSString).size(withAttributes: attributes)
-    let bodyWidth = max(29, ceil(textSize.width) + 8 + (charging ? 10 : 0))
-    let image = NSImage(size: NSSize(width: bodyWidth + 4, height: 18), flipped: false) { _ in
+    let bodyWidth = max(24, ceil(textSize.width) + 6 + (charging ? 8 : 0))
+    let image = NSImage(size: NSSize(width: bodyWidth + 3, height: 18), flipped: false) { _ in
         NSColor.black.setFill()
-        NSBezierPath(roundedRect: NSRect(x: 0, y: 1, width: bodyWidth, height: 16), xRadius: 4.5, yRadius: 4.5).fill()
+        NSBezierPath(roundedRect: NSRect(x: 0, y: 2.5, width: bodyWidth, height: 13), xRadius: 3.5, yRadius: 3.5).fill()
         let terminal = NSBezierPath()
-        terminal.move(to: NSPoint(x: bodyWidth + 1, y: 5.5))
-        terminal.line(to: NSPoint(x: bodyWidth + 1, y: 12.5))
-        terminal.curve(to: NSPoint(x: bodyWidth + 1, y: 5.5), controlPoint1: NSPoint(x: bodyWidth + 5, y: 12.5), controlPoint2: NSPoint(x: bodyWidth + 5, y: 5.5))
+        terminal.move(to: NSPoint(x: bodyWidth + 1, y: 6))
+        terminal.line(to: NSPoint(x: bodyWidth + 1, y: 12))
+        terminal.curve(to: NSPoint(x: bodyWidth + 1, y: 6), controlPoint1: NSPoint(x: bodyWidth + 3.5, y: 12), controlPoint2: NSPoint(x: bodyWidth + 3.5, y: 6))
         terminal.fill()
         NSGraphicsContext.current?.compositingOperation = .destinationOut
-        let textX = charging ? 4 : (bodyWidth - textSize.width) / 2
+        let textX = charging ? 3 : (bodyWidth - textSize.width) / 2
         (text as NSString).draw(at: NSPoint(x: textX, y: (18 - textSize.height) / 2), withAttributes: attributes)
         if charging {
-            let x = bodyWidth - 10
+            let x = bodyWidth - 8
             let bolt = NSBezierPath()
-            bolt.move(to: NSPoint(x: x + 7, y: 15))
+            bolt.move(to: NSPoint(x: x + 6, y: 14.5))
             bolt.line(to: NSPoint(x: x, y: 8))
-            bolt.line(to: NSPoint(x: x + 4, y: 8))
-            bolt.line(to: NSPoint(x: x + 2, y: 3))
-            bolt.line(to: NSPoint(x: x + 9, y: 10))
-            bolt.line(to: NSPoint(x: x + 5, y: 10))
+            bolt.line(to: NSPoint(x: x + 3, y: 8))
+            bolt.line(to: NSPoint(x: x + 1, y: 3.5))
+            bolt.line(to: NSPoint(x: x + 7, y: 10))
+            bolt.line(to: NSPoint(x: x + 4, y: 10))
             bolt.close()
             bolt.fill()
         }
