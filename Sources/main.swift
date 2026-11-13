@@ -10,6 +10,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        item?.autosaveName = "WattsInsideBattery"
+        item?.button?.title = "Watt’s Inside"
+        item?.button?.imagePosition = .imageOnly
         menu.delegate = self
         item?.button?.target = self
         item?.button?.action = #selector(showMenu)
@@ -80,7 +83,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             restoreError = nil
         } catch { restoreError = "Couldn’t restore limit. Select Restore to retry." }
         let summary = battery?.summary ?? "Battery unavailable"
-        item?.button?.image = batteryIcon(percent: battery?.percent, charging: battery?.charging ?? false, pluggedIn: battery?.pluggedIn ?? false)
+        item?.button?.image = batteryIcon(percent: battery?.percent, charging: battery?.charging ?? false)
+        item?.button?.window?.title = "Watt’s Inside"
         item?.button?.toolTip = summary
         item?.button?.setAccessibilityLabel("Battery: \(summary)")
         item?.button?.setAccessibilityHelp("Open battery menu. Right-click to quit Watt’s Inside.")

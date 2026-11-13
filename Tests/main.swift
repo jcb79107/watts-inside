@@ -26,9 +26,9 @@ preview.lockFocus()
 NSColor.darkGray.setFill()
 NSRect(x: 0, y: 0, width: 300, height: 140).fill()
 for (index, value) in values.enumerated() {
-    for mode in 0...2 {
+    for mode in 0...1 {
         let charging = mode == 1
-        let icon = batteryIcon(percent: value, charging: charging, pluggedIn: mode == 2)
+        let icon = batteryIcon(percent: value, charging: charging)
         assert(icon.isTemplate && icon.size.width <= 50)
         guard let tiff = icon.tiffRepresentation, let bitmap = NSBitmapImageRep(data: tiff) else { fatalError("Icon failed to render") }
         assert(bitmap.pixelsWide > 0)

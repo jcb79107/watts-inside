@@ -19,7 +19,7 @@ Click the battery icon for a native menu directly beneath it:
 
 Right-click (or Control-click) the icon to quit. VoiceOver receives the battery percentage and current basic power state. Unknown battery data shows `?`, never a stale or invented percentage.
 
-The icon shows a bolt while charging and a plug when connected but not charging. Its solid silhouette is not a fill gauge; the number is the charge level. It widens for three-digit percentages and power markers. Native template rendering adapts to menu-bar appearance.
+The icon shows a bolt only while charging; connection and hold status remain in the menu. Its solid silhouette is not a fill gauge; the number is the charge level. It widens for three-digit percentages and power markers. Native template rendering adapts to menu-bar appearance.
 
 ## Charge to Full Now
 
@@ -47,13 +47,13 @@ Outside an explicitly requested charging override and its restoration, the app d
 
 ## Deliberately small
 
-Uses system battery-change and wake notifications. Smart-charging state is queried when opening the menu or requesting a charging override. No permanent background polling, settings window, updater, or charts. Local UserDefaults stores only the pending charge-limit recovery record.
+Uses system battery-change and wake notifications. Smart-charging state is queried when opening the menu or requesting a charging override. No permanent background polling, settings window, updater, or charts. Local UserDefaults stores the pending charge-limit recovery record and AppKit’s saved status-item position.
 
 The menu is ours, not a transplanted Control Center panel. It does not claim Apple's per-app significant-energy list: CPU usage is not equivalent to energy usage. Low Power Mode changes remain in System Settings instead of requiring administrator access. The Accessibility experiment in `Prototypes/` is not compiled into the app.
 
 ## Verification
 
-`test.sh` checks battery parsing, boundary readings, full/finishing/held/limited states, disconnected override rejection, private-interface absence, unknown states, action rejection, and routing to the correct temporary override with a fake client. It also renders discharging, charging, and connected icons at 0, 9, 85, 100, and unknown percent.
+`test.sh` checks battery parsing, boundary readings, full/finishing/held/limited states, disconnected override rejection, private-interface absence, unknown states, action rejection, and routing to the correct temporary override with a fake client. It also renders discharging and charging icons at 0, 9, 85, 100, and unknown percent.
 
 Verified on Apple silicon/macOS 26.5.2: release build/signature, live battery and smart-charge reads, the running native menu's contents, and Battery Settings navigation. The real command was exercised with a temporary 95% limit; the production backend was verified transitioning to override and back to exactly 95%. A test-only SIGKILL immediately after the real menu action also verified that reopening the unchanged release restored exactly 95%. Original test-machine settings were restored afterward. Regression tests include the observed 80% restore mismatch, durable recovery across service recreation, failure/retry, unplugging, and completion (not merely a rounded 100%). Intel, older macOS, full charge cycles, sleep/wake, and physical VoiceOver/right-click testing remain unverified.
 
@@ -62,3 +62,9 @@ The final audit and its fixed findings are recorded in [docs/ponytail-audit.md](
 ## License
 
 MIT. Contributions that keep the app small are welcome.
+
+## Ice compatibility and idle usage
+
+The status item has a stable title and autosave name. If Ice has cached the old unnamed item, quit and reopen Ice once, then drag Watt’s Inside from Hidden to Visible in Menu Bar Layout. This was verified with Ice 0.11.13-dev.2.
+
+See [idle measurement](docs/idle-measurement.md) for the measured CPU/memory overhead and limits.

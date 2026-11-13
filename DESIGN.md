@@ -4,7 +4,7 @@ The primary interaction is a native NSMenu anchored to our status item. Right-cl
 
 ## What people need
 
-1. Check charge without clicking: number inside the battery; bolt for charging, plug for connected/not charging.
+1. Check charge without clicking: number inside the battery; bolt for charging; connected/held details in the menu.
 2. Understand why charging stopped: distinguish explicit macOS hold/limit state from generic Not Charging. Never infer optimized charging from the percentage alone.
 3. Leave with a full battery: offer Charge to Full Now only when the system reports that the action is meaningful and allowed. Revalidate at activation, let macOS own the temporary override, show failures.
 4. Extend battery life: show Low Power Mode state and take the user to the actual system control. Do not add a password prompt or administrator helper for a toggle.

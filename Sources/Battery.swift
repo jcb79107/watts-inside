@@ -82,18 +82,18 @@ struct Battery {
 }
 
 @MainActor
-func batteryIcon(percent: Int?, charging: Bool, pluggedIn: Bool = false) -> NSImage {
+func batteryIcon(percent: Int?, charging: Bool) -> NSImage {
     let text = percent.map(String.init) ?? "?"
-    let font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .heavy)
+    let font = NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .bold)
     let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.black]
     let textSize = (text as NSString).size(withAttributes: attributes)
-    let bodyWidth = max(25, ceil(textSize.width) + 8 + ((charging || pluggedIn) ? 9 : 0))
+    let bodyWidth = max(25, ceil(textSize.width) + 8 + (charging ? 9 : 0))
     let image = NSImage(size: NSSize(width: bodyWidth + 4, height: 18), flipped: false) { _ in
         NSColor.black.setFill()
-        NSBezierPath(roundedRect: NSRect(x: 0, y: 1, width: bodyWidth, height: 16), xRadius: 4, yRadius: 4).fill()
+        NSBezierPath(roundedRect: NSRect(x: 0, y: 2, width: bodyWidth, height: 14), xRadius: 3, yRadius: 3).fill()
         NSBezierPath(roundedRect: NSRect(x: bodyWidth + 1, y: 6, width: 2, height: 6), xRadius: 1, yRadius: 1).fill()
         NSGraphicsContext.current?.compositingOperation = .destinationOut
-        let textX = (charging || pluggedIn) ? 4 : (bodyWidth - textSize.width) / 2
+        let textX = charging ? 4 : (bodyWidth - textSize.width) / 2
         (text as NSString).draw(at: NSPoint(x: textX, y: (18 - textSize.height) / 2), withAttributes: attributes)
         if charging {
             let x = bodyWidth - 10
@@ -106,12 +106,6 @@ func batteryIcon(percent: Int?, charging: Bool, pluggedIn: Bool = false) -> NSIm
             bolt.line(to: NSPoint(x: x + 5, y: 10))
             bolt.close()
             bolt.fill()
-        } else if pluggedIn {
-            let x = bodyWidth - 10
-            NSBezierPath(roundedRect: NSRect(x: x + 1, y: 6, width: 7, height: 5), xRadius: 2, yRadius: 2).fill()
-            NSRect(x: x + 2, y: 10, width: 1.5, height: 4).fill()
-            NSRect(x: x + 5.5, y: 10, width: 1.5, height: 4).fill()
-            NSRect(x: x + 3.5, y: 3, width: 2, height: 4).fill()
         }
         return true
     }
