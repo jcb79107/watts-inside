@@ -25,3 +25,7 @@ The Accessibility prototype proved that hiding the native battery icon removes i
 ## Visual reference
 
 The supplied Apple website analysis reinforces system typography, restrained hierarchy, and minimal decoration. Website-specific display sizes, blue pill buttons, and marketing-page spacing do not apply to this native utility. NSMenu supplies system spacing, selection, colors, and appearance; only the battery glyph and heading weight are custom.
+
+## Reference-led icon refinement (1.1.4)
+
+The supplied Better Battery 2 reference sets the proportions: a soft solid battery body, rounded terminal, generous rounded numerals, and an internal charging bolt. Use the rounded system font at 13 points/heavy within a 16-point-tall body, with native template coloring. The number stays visible while charging. No extra state glyph for merely being connected. Layout expands only enough for the digits and bolt.

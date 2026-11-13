@@ -84,14 +84,19 @@ struct Battery {
 @MainActor
 func batteryIcon(percent: Int?, charging: Bool) -> NSImage {
     let text = percent.map(String.init) ?? "?"
-    let font = NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .bold)
+    let base = NSFont.systemFont(ofSize: 13, weight: .heavy)
+    let font = base.fontDescriptor.withDesign(.rounded).flatMap { NSFont(descriptor: $0, size: 13) } ?? base
     let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.black]
     let textSize = (text as NSString).size(withAttributes: attributes)
-    let bodyWidth = max(25, ceil(textSize.width) + 8 + (charging ? 9 : 0))
+    let bodyWidth = max(29, ceil(textSize.width) + 8 + (charging ? 10 : 0))
     let image = NSImage(size: NSSize(width: bodyWidth + 4, height: 18), flipped: false) { _ in
         NSColor.black.setFill()
-        NSBezierPath(roundedRect: NSRect(x: 0, y: 2, width: bodyWidth, height: 14), xRadius: 3, yRadius: 3).fill()
-        NSBezierPath(roundedRect: NSRect(x: bodyWidth + 1, y: 6, width: 2, height: 6), xRadius: 1, yRadius: 1).fill()
+        NSBezierPath(roundedRect: NSRect(x: 0, y: 1, width: bodyWidth, height: 16), xRadius: 4.5, yRadius: 4.5).fill()
+        let terminal = NSBezierPath()
+        terminal.move(to: NSPoint(x: bodyWidth + 1, y: 5.5))
+        terminal.line(to: NSPoint(x: bodyWidth + 1, y: 12.5))
+        terminal.curve(to: NSPoint(x: bodyWidth + 1, y: 5.5), controlPoint1: NSPoint(x: bodyWidth + 5, y: 12.5), controlPoint2: NSPoint(x: bodyWidth + 5, y: 5.5))
+        terminal.fill()
         NSGraphicsContext.current?.compositingOperation = .destinationOut
         let textX = charging ? 4 : (bodyWidth - textSize.width) / 2
         (text as NSString).draw(at: NSPoint(x: textX, y: (18 - textSize.height) / 2), withAttributes: attributes)

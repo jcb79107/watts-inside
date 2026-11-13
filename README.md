@@ -67,4 +67,4 @@ MIT. Contributions that keep the app small are welcome.
 
 The status item has a stable title and autosave name. If Ice has cached the old unnamed item, quit and reopen Ice once, then drag Watt’s Inside from Hidden to Visible in Menu Bar Layout. This was verified with Ice 0.11.13-dev.2.
 
-See [idle measurement](docs/idle-measurement.md) for the measured CPU/memory overhead and limits.
+A ten-minute installed-app test averaged 0.023% CPU, with 12–13 MB memory and no sustained growth. See [idle measurement](docs/idle-measurement.md) for raw samples, leak-detector findings, controls, and limits.
