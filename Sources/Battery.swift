@@ -44,7 +44,7 @@ struct Battery {
     var summary: String { "\(percent)% — \(status)" }
 
     @MainActor
-    func detailLines(smart: SmartCharge.State?) -> [String] {
+    func detailLines(smart: SmartCharge.State?, slowCharger: Bool = false) -> [String] {
         var lines = ["Power Source: " + (pluggedIn ? "Power Adapter" : "Battery")]
         if pluggedIn, let smart, smart.overrideActive {
             lines.append("Charging to Full")
@@ -59,6 +59,7 @@ struct Battery {
         } else {
             lines.append(status)
         }
+        if pluggedIn, slowCharger { lines.append("Slow Charger") }
         if charging, !finishing, let minutes = minutesToFull, minutes > 0 {
             let formatter = DateComponentsFormatter()
             formatter.allowedUnits = [.hour, .minute]
@@ -121,3 +122,11 @@ func batteryIcon(percent: Int?, charging: Bool) -> NSImage {
     return image
 }
 
+// Control Center reads this same state; missing/unknown states never imply a slow charger.
+func readSlowCharger(notificationName: String = "com.apple.PerfPowerServices.slowChargerUpdatedNotification") -> Bool {
+    var token: Int32 = 0
+    guard notify_register_check(notificationName, &token) == NOTIFY_STATUS_OK else { return false }
+    defer { notify_cancel(token) }
+    var state: UInt64 = 0
+    return notify_get_state(token, &state) == NOTIFY_STATUS_OK && state == 1
+}

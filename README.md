@@ -19,6 +19,8 @@ Click the battery icon for a native menu directly beneath it:
 
 Right-click (or Control-click) the icon to quit. VoiceOver receives the battery percentage and current basic power state. Unknown battery data shows `?`, never a stale or invented percentage.
 
+Slow Charger is shown when macOS reports it, using the same notification state as Control Center. Unsupported or unknown states omit the label; there is no wattage guess or polling. This private system signal may change in future macOS releases.
+
 The icon shows a bolt only while charging; connection and hold status remain in the menu. Its solid silhouette is not a fill gauge; the number is the charge level. It widens for three-digit percentages and power markers. Native template rendering adapts to menu-bar appearance.
 
 ## Charge to Full Now
@@ -68,3 +70,5 @@ MIT. Contributions that keep the app small are welcome.
 The status item has a stable title and autosave name. If Ice has cached the old unnamed item, quit and reopen Ice once, then drag Watt’s Inside from Hidden to Visible in Menu Bar Layout. This was verified with Ice 0.11.13-dev.2.
 
 A ten-minute installed-app test averaged 0.023% CPU, with 12–13 MB memory and no sustained growth. See [idle measurement](docs/idle-measurement.md) for raw samples, leak-detector findings, controls, and limits.
+
+Menu contrast, slow-charger reporting, and actual width measurements: [1.1.9 verification](docs/slow-charger-and-menu.md).

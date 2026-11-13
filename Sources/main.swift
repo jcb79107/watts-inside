@@ -51,13 +51,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.removeAllItems()
         let battery = Battery.read()
         let smart = SmartCharge.shared.state()
-        let heading = NSMenuItem(title: battery.map { "Battery   \($0.percent)%" } ?? "Battery Unavailable", action: nil, keyEquivalent: "")
-        heading.attributedTitle = NSAttributedString(string: heading.title, attributes: [.font: NSFont.systemFont(ofSize: NSFont.systemFontSize, weight: .semibold)])
-        menu.addItem(heading)
-        for line in battery?.detailLines(smart: smart) ?? [] {
-            menu.addItem(withTitle: line, action: nil, keyEquivalent: "")
+        let title = battery.map { "Battery   \($0.percent)%" } ?? "Battery Unavailable"
+        var lines = [title] + (battery?.detailLines(smart: smart, slowCharger: readSlowCharger()) ?? [])
+        if source == nil { lines.append("Live updates unavailable; reopen to refresh") }
+        // Disabled NSMenuItem titles are dimmed even with an explicit text color.
+        let labels = lines.enumerated().map { index, text in
+            let label = NSTextField(labelWithString: text)
+            label.font = NSFont.systemFont(ofSize: NSFont.systemFontSize, weight: index == 0 ? .semibold : .regular)
+            label.textColor = .labelColor
+            label.sizeToFit()
+            return label
         }
-        if source == nil { menu.addItem(withTitle: "Live updates unavailable; reopen to refresh", action: nil, keyEquivalent: "") }
+        let width = max(232, (labels.map { $0.frame.width }.max() ?? 0) + 32)
+        let info = NSView(frame: NSRect(x: 0, y: 0, width: width, height: CGFloat(labels.count) * 24 + 8))
+        for (index, label) in labels.enumerated() {
+            label.frame.origin = NSPoint(x: 16, y: info.frame.height - CGFloat(index + 1) * 24)
+            info.addSubview(label)
+        }
+        let heading = NSMenuItem()
+        heading.view = info
+        menu.addItem(heading)
         menu.addItem(.separator())
         if let saved = SmartCharge.shared.savedLimit {
             let restore = menu.addItem(withTitle: "Restore \(saved)% Charge Limit", action: #selector(restoreChargeLimit), keyEquivalent: "")

@@ -45,3 +45,9 @@ A direct desktop capture at 2× scale, with Apple's battery on the left and Wi-F
 ### Lighter menu-bar weight (1.1.8)
 
 Reduce the body to 11 points high and rounded digits to 10-point bold; scale the bolt and terminal vertically. Preserve the optical leading inset and click-target padding. Direct screenshot verification beside Apple's battery and Wi-Fi measured approximately 48 and 47 empty physical pixels at 2× scale, balanced within antialiasing/rounding precision. The smaller body sits at the native icons' visual scale.
+
+### Readable native menu and compact width (1.1.9)
+
+The information block uses native static text with `labelColor`, preserving readable contrast without implying that status text is an action. Menu actions keep AppKit’s native selection and keyboard behavior. Slow Charger comes from the same system notification state as Control Center and appears only on external power; it does not replace charge-limit or hold information. No wattage heuristic or polling was added. See [live verification](docs/slow-charger-and-menu.md).
+
+Keep the approved 1.1.8 icon geometry and optical spacing. Measured live status-item widths, including macOS padding, are 59 pt for ours and 71 pt for Apple’s battery plus percentage at 99% charging (16.9% less space).

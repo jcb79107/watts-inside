@@ -189,3 +189,23 @@ assert(service.state() == nil)
 assert(SmartCharge(client: nil, defaults: defaults).state() == nil)
 print("Override, exact-limit restoration, restart recovery, failure/retry and completion checks passed.")
 print("Live smart-charge availability: \(SmartCharge.shared.isAvailable); state: \(String(describing: SmartCharge.shared.state()))")
+
+assert(Battery(description: description(99))!.detailLines(smart: nil, slowCharger: true).contains("Slow Charger"))
+assert(!Battery(description: unplugged)!.detailLines(smart: nil, slowCharger: true).contains("Slow Charger"))
+assert(!Battery(description: description(99))!.detailLines(smart: nil).contains("Slow Charger"))
+for percent in 0...100 {
+    for charging in [false, true] {
+        assert(batteryIcon(percent: percent, charging: charging).size.width + 10 <= 48)
+    }
+}
+print("Slow-charger presentation and compact width checks passed.")
+
+let notificationName = "io.github.jcb79107.watts-inside.tests.\(UUID().uuidString)"
+var testToken: Int32 = 0
+assert(notify_register_check(notificationName, &testToken) == NOTIFY_STATUS_OK)
+for state: UInt64 in [0, 1, 2, UInt64.max, 0] {
+    assert(notify_set_state(testToken, state) == NOTIFY_STATUS_OK)
+    assert(readSlowCharger(notificationName: notificationName) == (state == 1))
+}
+assert(notify_cancel(testToken) == NOTIFY_STATUS_OK)
+print("System notification state checks passed; live Slow Charger: \(readSlowCharger())")
