@@ -67,7 +67,7 @@ Charging controls and Slow Charger reporting use private macOS interfaces, which
 
 ## Development
 
-Run `./test.sh` for parsing, state, charging-recovery, notification, and icon-width checks. Run `./build.sh` to create the app. No package manager is needed.
+Run `./test.sh` for parsing, state, charging-recovery, notification, and icon-width checks. Run `./build.sh` to create the app. No package manager is needed. Developer ID signing and notarization setup are documented in the [release guide](docs/notarization.md).
 
 Changes that keep the app small are welcome. The charging adapter is adapted from [Lithe](https://github.com/asmeurer/Lithe); see [third-party notices](THIRD_PARTY_NOTICES.md). Licensed under [MIT](LICENSE).
 
